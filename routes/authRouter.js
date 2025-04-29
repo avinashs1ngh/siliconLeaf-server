@@ -12,7 +12,7 @@ router.post('/login', async (req, res) => {
   console.log('Login attempt:', { email, password });
 
   try {
-    const user = await User.findOne({ email: email });
+    const user = await User.findOne({ email:email?.toLowerCase() });
 
     console.log('User found:', user ? user : 'No user found');
 
@@ -46,16 +46,16 @@ router.post('/register', async (req, res) => {
   const { name, email, username, password } = req.body;
 
   try {
-    let user = await User.findOne({ $or: [{ email }, { username }] });
+    let user = await User.findOne({ $or: [{ email: email?.toLowerCase() }, { username }] });
     if (user) {
       return res.status(400).json({ message: 'User already exists' });
     }
 
     user = new User({
       name,
-      email,
+      email: email?.toLowerCase(),
       username,
-      password: await bcrypt.hash(password, 10),
+      password, // Pre-save hook will hash this
       role: 'user'
     });
 

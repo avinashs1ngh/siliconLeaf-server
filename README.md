@@ -54,7 +54,7 @@ Setup Instructions:
 
 
 
-Clone the repository: git clone https://github.com/<your-username>/siliconLeaf-server.git
+Clone the repository: git clone https://github.com/avinashs1ngh/siliconLeaf-server.git
 
 
 

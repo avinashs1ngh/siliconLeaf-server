@@ -8,9 +8,32 @@ require('dotenv').config();
 
 const app = express();
 
+// CORS Configuration
+const corsOptions = {
+  origin: '*', // Replace with your frontend URL
+  methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
+  allowedHeaders: ['Content-Type', 'Authorization'],
+  credentials: true,
+};
+app.use(cors(corsOptions));
+
+// Explicitly handle OPTIONS requests before any routes or middleware
+app.use((req, res, next) => {
+  if (req.method === 'OPTIONS') {
+    console.log('Handling OPTIONS request for:', req.url);
+    return res.sendStatus(200);
+  }
+  next();
+});
+
 // Middleware
-app.use(cors());
 app.use(express.json());
+
+// Request logging for debugging
+app.use((req, res, next) => {
+  console.log(`[${new Date().toISOString()}] ${req.method} ${req.url}`);
+  next();
+});
 
 // Routes
 app.use('/api/auth', authRoutes);
@@ -18,7 +41,6 @@ app.use('/api/tasks', taskRoutes);
 app.use('/api/admin/tasks', adminTaskRoutes);
 
 app.get('/', (req, res) => res.send('SiliconLeaf Server is running'));
-// Health Check
 app.get('/health', (req, res) => res.status(200).send('OK'));
 
 // Global Error Handler
@@ -27,18 +49,18 @@ app.use((err, req, res, next) => {
   res.status(500).send('Something went wrong!');
 });
 
-// MongoDB Connection with Enhanced Error Handling
+// MongoDB Connection
 const connectDB = async () => {
   try {
     await mongoose.connect(process.env.MONGO_URI);
     console.log('MongoDB connected successfully');
   } catch (err) {
     console.error('MongoDB connection error:', err.message);
-    process.exit(1); // Exit if MongoDB fails to connect
+    process.exit(1);
   }
 };
 
-// Start Server with Graceful Shutdown
+// Start Server
 const startServer = async () => {
   try {
     await connectDB();
@@ -47,7 +69,6 @@ const startServer = async () => {
       console.log(`Server running on port ${PORT}`);
     });
 
-    // Handle graceful shutdown
     process.on('SIGTERM', () => {
       console.log('SIGTERM received. Shutting down gracefully...');
       server.close(() => {
